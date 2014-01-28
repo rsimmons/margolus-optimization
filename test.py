@@ -27,10 +27,39 @@ def dump_64(pat):
         cs.append('\n')
     return ''.join(cs)
 
+def iterate_64(rule, pat, iters):
+    for i in range(iters>>1):
+        pat = evolve.evolve_64_even(rule, pat)
+        print dump_64(pat)
+        pat_c, pat_n, pat_nw, pat_w = evolve.evolve_64_odd(rule, pat, pat, pat, pat)
+        pat = pat_c | pat_n | pat_nw | pat_w
+        print dump_64(pat)
+
+    if iters & 1:
+        pat = evolve.evolve_64_even(rule, pat)
+        print dump_64(pat)
+
+    return pat
+
 if __name__ == '__main__':
     rule = rule.encode_rule((0, 2, 8, 3, 1, 5, 6, 7, 4, 9, 10, 11, 12, 13, 14, 15))
-    x = load_64('pat.txt')
-    print x
-    print dump_64(x)
-    x = evolve.evolve_64_even(rule, x)
-    print dump_64(x)
+    pat = load_64('pat.txt')
+    print pat
+    print dump_64(pat)
+
+    # x = pat
+
+    # x = evolve.evolve_64_even(rule, x)
+    # print dump_64(x)
+    # xc, xn, xnw, xw = evolve.evolve_64_odd(rule, x, x, x, x)
+    # x = xc | xn | xnw | xw
+    # print dump_64(x)
+    # x = evolve.evolve_64_even(rule, x)
+    # print dump_64(x)
+    # xc, xn, xnw, xw = evolve.evolve_64_odd(rule, x, x, x, x)
+    # x = xc | xn | xnw | xw
+    # print dump_64(x)
+    # x = evolve.evolve_64_even(rule, x)
+    # print dump_64(x)
+
+    x = iterate_64(rule, pat, 24)
