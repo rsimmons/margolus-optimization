@@ -73,10 +73,7 @@ def py_evolve_64_odd_func():
 
     for dy in (9, 25, 41):
         for dx in (0, 2, 4):
-            s += '    qind%d = %s | %s\n' % (count, twobits_move('src_c', dx+dy, 2), twobits_move('src_c', dx+dy+8, 4))
-            s += '    res%d = %s\n' % (count, rule_lookup_expr('rule', 'qind%d' % count))
-            s += '    dst_c |= %s\n' % twobits_move('res%d' % count, 0, dx+dy)
-            s += '    dst_c |= %s\n' % twobits_move('res%d' % count, 2, dx+dy+8)
+            s += py_evolve_four_bits_paired(count, dx+dy, 'src_c', 'dst_c', dx+dy+8, 'src_c', 'dst_c')
             count += 1
     s += '    return (dst_c, dst_n, dst_nw, dst_w)\n'
     return s
