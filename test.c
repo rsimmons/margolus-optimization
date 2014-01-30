@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef uint64_t UInt64;
 
@@ -171,11 +173,74 @@ UInt64 iterate_64(UInt64 rule, UInt64 pat, int iters) {
     return pat;
 }
 
+void evolve_even(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pattern, UInt64 *end_pattern) {
+    for (int i = 0; i < width_blocks*height_blocks; i++) {
+        // don't need to zero dest for evolve_64_even
+        evolve_64_even(rule, start_pattern[i], end_pattern + i);
+    }
+}
+
+void evolve_odd(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pattern, UInt64 *end_pattern) {
+    int c_idx, n_idx, nw_idx, w_idx;
+
+    // necessary because evolve_64_odd or bits into dest
+    bzero(end_pattern, width_blocks*height_blocks*sizeof(UInt64));
+
+    for (int y = 0; y < height_blocks; y++) {
+        for (int x = 0; x < width_blocks; x++) {
+            // surely could be faster (avoid multiplies) but not sure it matters too much
+            c_idx = y*width_blocks + x;
+            n_idx = ((y+height_blocks-1)%height_blocks)*width_blocks + x;
+            nw_idx = ((y+height_blocks-1)%height_blocks)*width_blocks + ((x+width_blocks-1)%width_blocks);
+            w_idx = y*width_blocks + ((x+width_blocks-1)%width_blocks);
+            evolve_64_odd(rule, start_pattern[c_idx], start_pattern[n_idx], start_pattern[nw_idx], start_pattern[w_idx], end_pattern+c_idx, end_pattern+n_idx, end_pattern+nw_idx, end_pattern+w_idx);
+        }
+    }
+}
+
+void iterate(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pattern, UInt64 *end_pattern, int start_phase, int iters) {
+    UInt64 *temp_patterns[2];
+
+    for (int i = 0; i < 2; i++) {
+        temp_patterns[i] = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
+        // TODO: verify alignment?
+    }
+
+    memcpy(temp_patterns[0], start_pattern, width_blocks*height_blocks*sizeof(UInt64));
+
+    int cur_idx = 0;
+
+    if (start_phase) {
+        evolve_odd(rule, width_blocks, height_blocks, temp_patterns[cur_idx], temp_patterns[!cur_idx]);
+        cur_idx = !cur_idx;
+        iters--;
+    }
+
+    while (iters >= 2) {
+        evolve_even(rule, width_blocks, height_blocks, temp_patterns[cur_idx], temp_patterns[!cur_idx]);
+        cur_idx = !cur_idx;
+
+        evolve_odd(rule, width_blocks, height_blocks, temp_patterns[cur_idx], temp_patterns[!cur_idx]);
+        cur_idx = !cur_idx;
+
+        iters -= 2;
+    }
+
+    if (iters) {
+        evolve_even(rule, width_blocks, height_blocks, temp_patterns[cur_idx], temp_patterns[!cur_idx]);
+        cur_idx = !cur_idx;
+    }
+
+    memcpy(end_pattern, temp_patterns[cur_idx], width_blocks*height_blocks*sizeof(UInt64));
+}
+
 int main(void) {
     UInt64 rule = 18364758527313000480ULL;
     UInt64 pat = 234881024ULL;
     // evolve_64_even(rule, x, &y);
     printf("%llu\n", pat);
-    UInt64 final = iterate_64(rule, pat, 100000000);
-    printf("%llu\n", final);
+    // UInt64 final = iterate_64(rule, pat, 1000000);
+    UInt64 end_pat;
+    iterate(rule, 1, 1, &pat, &end_pat, 0, 1000000);
+    printf("%llu\n", end_pat);
 }

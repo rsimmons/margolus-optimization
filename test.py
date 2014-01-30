@@ -1,65 +1,23 @@
+import sys
+import time
+
+import util
 import rule
-import evolve
-
-def load_64(fn):
-    yind = 0
-    result = 0
-    with open(fn) as f:
-        for line in f:
-            sline = line.strip()
-            if sline.startswith('#'):
-                continue
-            assert len(sline) == 8
-            for i, c in enumerate(sline):
-                v = 1 if c in 'xX' else 0
-                result |= (v << (i + 8*yind))
-            yind += 1
-    return result
-
-def dump_64(pat):
-    cs = []
-    shift = 0
-    for y in range(8):
-        for x in range(8):
-            v = ((1 << shift) & pat) >> shift
-            cs.append('X' if v else '.')
-            shift += 1
-        cs.append('\n')
-    return ''.join(cs)
-
-def iterate_64(rule, pat, iters):
-    for i in range(iters>>1):
-        pat = evolve.evolve_64_even(rule, pat)
-        print dump_64(pat)
-        pat_c, pat_n, pat_nw, pat_w = evolve.evolve_64_odd(rule, pat, pat, pat, pat)
-        pat = pat_c | pat_n | pat_nw | pat_w
-        print dump_64(pat)
-
-    if iters & 1:
-        pat = evolve.evolve_64_even(rule, pat)
-        print dump_64(pat)
-
-    return pat
 
 if __name__ == '__main__':
     rule = rule.encode_rule((0, 2, 8, 3, 1, 5, 6, 7, 4, 9, 10, 11, 12, 13, 14, 15))
-    pat = load_64('pat.txt')
+    print 'rule:', rule
+    pat = util.load_64('pat.txt')
     print pat
-    print dump_64(pat)
 
-    # x = pat
+    for i in range(1, 10):
+        print util.iterate_64(rule, pat, i)
+    sys.exit(0)
 
-    # x = evolve.evolve_64_even(rule, x)
-    # print dump_64(x)
-    # xc, xn, xnw, xw = evolve.evolve_64_odd(rule, x, x, x, x)
-    # x = xc | xn | xnw | xw
-    # print dump_64(x)
-    # x = evolve.evolve_64_even(rule, x)
-    # print dump_64(x)
-    # xc, xn, xnw, xw = evolve.evolve_64_odd(rule, x, x, x, x)
-    # x = xc | xn | xnw | xw
-    # print dump_64(x)
-    # x = evolve.evolve_64_even(rule, x)
-    # print dump_64(x)
+    reps = 24
 
-    x = iterate_64(rule, pat, 24)
+    t0 = time.time()
+    pat = util.iterate_64(rule, pat, reps)
+    dt = time.time() - t0
+    print util.dump_64(pat)
+    print float(reps)/dt, 'iters per second'
