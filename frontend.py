@@ -125,7 +125,7 @@ def evolve_c_simple_uint8(state, iters):
         'cells': [bool(ord(c)) for c in subproc_output],
     }
 
-def evolve_block_64_cgen(state, iters):
+def evolve_block_64_cgen(exename, state, iters):
     # pack up width, height, phase, data
     assert (state['width'] % 8) == 0
     assert (state['height'] % 8) == 0
@@ -149,7 +149,7 @@ def evolve_block_64_cgen(state, iters):
 
     subproc_input = ''.join(packed_pieces)
 
-    pobj = subprocess.Popen(['./evolve_block_64_cgen'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    pobj = subprocess.Popen([exename], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (subproc_output, subproc_err) = pobj.communicate(subproc_input)
     assert pobj.returncode == 0
     # print 'debug output:', subproc_err
@@ -176,6 +176,12 @@ def evolve_block_64_cgen(state, iters):
 
     return end_state
 
+def evolve_block_64_cgen_array_rule(state, iters):
+    return evolve_block_64_cgen('./evolve_block_64_cgen_array_rule', state, iters)
+
+def evolve_block_64_cgen_packed_rule(state, iters):
+    return evolve_block_64_cgen('./evolve_block_64_cgen_packed_rule', state, iters)
+
 if __name__ == '__main__':
     test_start_url = 'http://dmishin.github.io/js-revca/index.html?rule=0,2,8,3,1,5,6,7,4,9,10,11,12,13,14,15&rle_x0=24&rle_y0=20&rle=bo4b3obobo$2b6o3b2o$8ob3o$4bobo5bo$3bob3o$bo2bobo4bo$ob5ob5o$4o2bob3obo$4b2ob2obobo$3ob2o2bo3bo$bob2obo3b3o$2o3bo2bobobo$b2o2b2ob2o2bo$3o2bob2obobo$bob3obobo2bo&step=1&frame_delay=10&size=64x64&cell_size=8,1&phase=0'
     test_end_url = 'http://dmishin.github.io/js-revca/index.html?rule=0,2,8,3,1,5,6,7,4,9,10,11,12,13,14,15&rle_x0=1&rle_y0=1&rle=15bo$5bo2$30bo$6bo52bo$o3$31bo2$15bo$35bo23bo$7bo31bo2$25bo$25bo17bo18bo$58bo$20bo$54bo2$25b6obo$22bo2b6o$29bo$4bo23b2o$27bobo$26b4o2b4o$21bo4bo2b2ob2ob2o$14bo12b2o2bo3bo9bo$27b2ob2o2b2o4bo$22bo4bo2b3obo$28bo2bobo$24b2o3bo2bo11bo$24b2o4b2o10bo$57bo$25bo$4bo$3bo$33bo3$31bo$38bo$45bo$25bo4bo8$25bo2$15bo$58bo$24bobo5$24bo2$32bo&step=1024&frame_delay=10&size=64x64&cell_size=8,1&phase=0'
@@ -186,7 +192,7 @@ if __name__ == '__main__':
 
     # print format_state(test_start_state)
 
-    for ef in (evolve_c_simple_uint8, evolve_block_64_cgen):
+    for ef in (evolve_c_simple_uint8, evolve_block_64_cgen_packed_rule, evolve_block_64_cgen_array_rule):
         t0 = time.time()
         end_state = ef(test_start_state, test_iters)
         dt = time.time() - t0
