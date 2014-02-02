@@ -82,15 +82,15 @@ void evolve_64_odd(UInt64 rule, UInt64 src_c, UInt64 src_n, UInt64 src_nw, UInt6
     result_n |= ((res0 & 2ULL) << 55);
     result_w |= ((res0 & 4ULL) << 5);
     result_c |= ((res0 & 8ULL) >> 3);
-    UInt64 qind1 = ((src_n & 432345564227567616ULL) >> 55) | ((src_n & 6ULL) << 3);
+    UInt64 qind1 = ((src_n & 432345564227567616ULL) >> 55) | ((src_c & 6ULL) << 3);
     UInt64 res1 = ((rule & (15ULL << qind1)) >> qind1);
     result_n |= ((res1 & 3ULL) << 57);
     result_c |= ((res1 & 12ULL) >> 1);
-    UInt64 qind2 = ((src_n & 1729382256910270464ULL) >> 57) | ((src_n & 24ULL) << 1);
+    UInt64 qind2 = ((src_n & 1729382256910270464ULL) >> 57) | ((src_c & 24ULL) << 1);
     UInt64 res2 = ((rule & (15ULL << qind2)) >> qind2);
     result_n |= ((res2 & 3ULL) << 59);
     result_c |= ((res2 & 12ULL) << 1);
-    UInt64 qind3 = ((src_n & 6917529027641081856ULL) >> 59) | ((src_n & 96ULL) >> 1);
+    UInt64 qind3 = ((src_n & 6917529027641081856ULL) >> 59) | ((src_c & 96ULL) >> 1);
     UInt64 res3 = ((rule & (15ULL << qind3)) >> qind3);
     result_n |= ((res3 & 3ULL) << 61);
     result_c |= ((res3 & 12ULL) << 3);
@@ -174,7 +174,6 @@ UInt64 iterate_64(UInt64 rule, UInt64 pat, int iters) {
 }
 
 void evolve_even(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pattern, UInt64 *end_pattern) {
-    fprintf(stderr, "evolve_even\n");
     for (int i = 0; i < width_blocks*height_blocks; i++) {
         // don't need to zero dest for evolve_64_even
         evolve_64_even(rule, start_pattern[i], end_pattern + i);
@@ -182,7 +181,6 @@ void evolve_even(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start
 }
 
 void evolve_odd(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pattern, UInt64 *end_pattern) {
-    fprintf(stderr, "evolve_odd\n");
     int c_idx, n_idx, nw_idx, w_idx;
 
     // necessary because evolve_64_odd or bits into dest
@@ -251,7 +249,7 @@ int main(void) {
 
     fread(start_pattern, width_blocks*height_blocks*sizeof(UInt64), 1, stdin);
 
-    fprintf(stderr, "%d %d %d %d\n", width_blocks, height_blocks, start_phase, iterations);
+    // fprintf(stderr, "%d %d %d %d\n", width_blocks, height_blocks, start_phase, iterations);
 
     // UInt64 pat = 234881024ULL;
     // evolve_64_even(rule, x, &y);

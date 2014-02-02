@@ -25,7 +25,7 @@ def rule_lookup_expr(rule_var, qindex_var):
 
 def evolve_four_bits_paired(tmpind, low_bitnum, src_low_var, dst_low_var, high_bitnum, src_high_var, dst_high_var):
     s = ''
-    s += '    UInt64 qind%d = %s | %s;\n' % (tmpind, twobits_move(src_low_var, low_bitnum, 2), twobits_move(src_low_var, high_bitnum, 4))
+    s += '    UInt64 qind%d = %s | %s;\n' % (tmpind, twobits_move(src_low_var, low_bitnum, 2), twobits_move(src_high_var, high_bitnum, 4))
     s += '    UInt64 res%d = %s;\n' % (tmpind, rule_lookup_expr('rule', 'qind%d' % tmpind))
     s += '    %s |= %s;\n' % (dst_low_var, twobits_move('res%d' % tmpind, 0, low_bitnum))
     s += '    %s |= %s;\n' % (dst_high_var, twobits_move('res%d' % tmpind, 2, high_bitnum))
