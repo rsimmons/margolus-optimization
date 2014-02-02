@@ -167,13 +167,16 @@ void evolve_odd(UInt64 *rule, int width_blocks, int height_blocks, UInt64 *start
     // necessary because evolve_64_odd or bits into dest
     bzero(end_pattern, width_blocks*height_blocks*sizeof(UInt64));
 
+    int x1, yoff0, yoff1;
     for (int y = 0; y < height_blocks; y++) {
+        yoff0 = y*width_blocks;
+        yoff1 = ((y+height_blocks-1)%height_blocks)*width_blocks;
         for (int x = 0; x < width_blocks; x++) {
-            // surely could be faster (avoid multiplies) but not sure it matters too much
-            c_idx = y*width_blocks + x;
-            n_idx = ((y+height_blocks-1)%height_blocks)*width_blocks + x;
-            nw_idx = ((y+height_blocks-1)%height_blocks)*width_blocks + ((x+width_blocks-1)%width_blocks);
-            w_idx = y*width_blocks + ((x+width_blocks-1)%width_blocks);
+            x1 = ((x+width_blocks-1)%width_blocks);
+            c_idx = yoff0 + x;
+            n_idx = yoff1 + x;
+            nw_idx = yoff1 + x1;
+            w_idx = yoff0 + x1;
             evolve_64_odd(rule, start_pattern[c_idx], start_pattern[n_idx], start_pattern[nw_idx], start_pattern[w_idx], end_pattern+c_idx, end_pattern+n_idx, end_pattern+nw_idx, end_pattern+w_idx);
         }
     }
