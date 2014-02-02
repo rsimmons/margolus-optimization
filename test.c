@@ -174,6 +174,7 @@ UInt64 iterate_64(UInt64 rule, UInt64 pat, int iters) {
 }
 
 void evolve_even(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pattern, UInt64 *end_pattern) {
+    fprintf(stderr, "evolve_even\n");
     for (int i = 0; i < width_blocks*height_blocks; i++) {
         // don't need to zero dest for evolve_64_even
         evolve_64_even(rule, start_pattern[i], end_pattern + i);
@@ -181,6 +182,7 @@ void evolve_even(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start
 }
 
 void evolve_odd(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pattern, UInt64 *end_pattern) {
+    fprintf(stderr, "evolve_odd\n");
     int c_idx, n_idx, nw_idx, w_idx;
 
     // necessary because evolve_64_odd or bits into dest
@@ -229,6 +231,7 @@ void iterate(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pat
     if (iters) {
         evolve_even(rule, width_blocks, height_blocks, temp_patterns[cur_idx], temp_patterns[!cur_idx]);
         cur_idx = !cur_idx;
+        iters--;
     }
 
     memcpy(end_pattern, temp_patterns[cur_idx], width_blocks*height_blocks*sizeof(UInt64));
@@ -236,11 +239,29 @@ void iterate(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pat
 
 int main(void) {
     UInt64 rule = 18364758527313000480ULL;
-    UInt64 pat = 234881024ULL;
+
+    uint32_t width_blocks, height_blocks, start_phase, iterations;
+    fread(&width_blocks, sizeof(uint32_t), 1, stdin);
+    fread(&height_blocks, sizeof(uint32_t), 1, stdin);
+    fread(&start_phase, sizeof(uint32_t), 1, stdin);
+    fread(&iterations, sizeof(uint32_t), 1, stdin);
+
+    UInt64 *start_pattern = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
+    UInt64 *end_pattern = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
+
+    fread(start_pattern, width_blocks*height_blocks*sizeof(UInt64), 1, stdin);
+
+    fprintf(stderr, "%d %d %d %d\n", width_blocks, height_blocks, start_phase, iterations);
+
+    // UInt64 pat = 234881024ULL;
     // evolve_64_even(rule, x, &y);
-    printf("%llu\n", pat);
+    // printf("%llu\n", pat);
     // UInt64 final = iterate_64(rule, pat, 1000000);
-    UInt64 end_pat;
-    iterate(rule, 1, 1, &pat, &end_pat, 0, 1000000);
-    printf("%llu\n", end_pat);
+    // UInt64 end_pat;
+    iterate(rule, width_blocks, height_blocks, start_pattern, end_pattern, start_phase, iterations);
+    // printf("%llu\n", end_pat);
+
+    fwrite(end_pattern, width_blocks*height_blocks*sizeof(UInt64), 1, stdout);
+
+    return 0;
 }
