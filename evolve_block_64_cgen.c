@@ -202,8 +202,8 @@ void iterate(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pat
     UInt64 *temp_patterns[2];
 
     for (int i = 0; i < 2; i++) {
-        temp_patterns[i] = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
-        // TODO: verify alignment?
+        // not sure if alignment makes a difference, but just in case
+        posix_memalign((void *)(temp_patterns+i), 64, width_blocks*height_blocks*sizeof(UInt64));
     }
 
     memcpy(temp_patterns[0], start_pattern, width_blocks*height_blocks*sizeof(UInt64));
