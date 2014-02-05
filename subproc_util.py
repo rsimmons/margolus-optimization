@@ -1,7 +1,7 @@
 import subprocess
 import struct
 
-def evolve_block_64_cgen(exename, state, iters):
+def evolve_block_64_cgen(exename, state, rule, iters):
     # pack up width, height, phase, data
     assert (state['width'] % 8) == 0
     assert (state['height'] % 8) == 0
@@ -10,6 +10,8 @@ def evolve_block_64_cgen(exename, state, iters):
 
     packed_pieces = []
     packed_pieces.append(struct.pack('=IIII', width_blocks, height_blocks, state['phase'], iters))
+
+    packed_pieces.append(struct.pack('=16B', *rule))
 
     for by in range(height_blocks):
         for bx in range(width_blocks):

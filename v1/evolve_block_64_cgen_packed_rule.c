@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 typedef uint64_t UInt64;
 
@@ -236,13 +237,22 @@ void iterate(UInt64 rule, int width_blocks, int height_blocks, UInt64 *start_pat
 }
 
 int main(void) {
-    UInt64 rule = 18364758527313000480ULL;
-
     uint32_t width_blocks, height_blocks, start_phase, iterations;
     fread(&width_blocks, sizeof(uint32_t), 1, stdin);
     fread(&height_blocks, sizeof(uint32_t), 1, stdin);
     fread(&start_phase, sizeof(uint32_t), 1, stdin);
     fread(&iterations, sizeof(uint32_t), 1, stdin);
+
+    uint8_t rule[16];
+    fread(rule, 16*sizeof(uint8_t), 1, stdin);
+
+    // pack rule into packed_rule
+    UInt64 packed_rule = 0;
+    for (int i = 0; i < 16; i++) {
+        assert(rule[i] < 16);
+        fprintf(stderr, "%d\n", rule[i]);
+        packed_rule |= ((UInt64)rule[i]) << (4*i);
+    }
 
     UInt64 *start_pattern = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
     UInt64 *end_pattern = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
@@ -251,13 +261,7 @@ int main(void) {
 
     // fprintf(stderr, "%d %d %d %d\n", width_blocks, height_blocks, start_phase, iterations);
 
-    // UInt64 pat = 234881024ULL;
-    // evolve_64_even(rule, x, &y);
-    // printf("%llu\n", pat);
-    // UInt64 final = iterate_64(rule, pat, 1000000);
-    // UInt64 end_pat;
-    iterate(rule, width_blocks, height_blocks, start_pattern, end_pattern, start_phase, iterations);
-    // printf("%llu\n", end_pat);
+    iterate(packed_rule, width_blocks, height_blocks, start_pattern, end_pattern, start_phase, iterations);
 
     fwrite(end_pattern, width_blocks*height_blocks*sizeof(UInt64), 1, stdout);
 

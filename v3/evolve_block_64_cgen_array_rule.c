@@ -220,14 +220,19 @@ void iterate(UInt64 *rule, int width_blocks, int height_blocks, UInt64 *start_pa
 }
 
 int main(void) {
-    // UInt64 rule = 18364758527313000480ULL;
-    UInt64 rule[] = {0, 2, 8, 3, 1, 5, 6, 7, 4, 9, 10, 11, 12, 13, 14, 15};
-
     uint32_t width_blocks, height_blocks, start_phase, iterations;
     fread(&width_blocks, sizeof(uint32_t), 1, stdin);
     fread(&height_blocks, sizeof(uint32_t), 1, stdin);
     fread(&start_phase, sizeof(uint32_t), 1, stdin);
     fread(&iterations, sizeof(uint32_t), 1, stdin);
+
+    uint8_t rule[16];
+    fread(rule, 16*sizeof(uint8_t), 1, stdin);
+
+    UInt64 rule_64[16];
+    for (int i = 0; i < 16; i++) {
+        rule_64[i] = rule[i];
+    }
 
     UInt64 *start_pattern = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
     UInt64 *end_pattern = (UInt64 *)malloc(width_blocks*height_blocks*sizeof(UInt64));
@@ -236,7 +241,7 @@ int main(void) {
 
     // fprintf(stderr, "%d %d %d %d\n", width_blocks, height_blocks, start_phase, iterations);
 
-    iterate(rule, width_blocks, height_blocks, start_pattern, end_pattern, start_phase, iterations);
+    iterate(rule_64, width_blocks, height_blocks, start_pattern, end_pattern, start_phase, iterations);
 
     fwrite(end_pattern, width_blocks*height_blocks*sizeof(UInt64), 1, stdout);
 
