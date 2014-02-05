@@ -5,8 +5,6 @@
 #include <assert.h>
 
 int main(void) {
-    uint8_t rule[] = {0, 2, 8, 3, 1, 5, 6, 7, 4, 9, 10, 11, 12, 13, 14, 15};
-
     uint32_t arg_width, arg_height, arg_phase, arg_iterations;
     fread(&arg_width, sizeof(uint32_t), 1, stdin);
     fread(&arg_height, sizeof(uint32_t), 1, stdin);
@@ -20,6 +18,10 @@ int main(void) {
     assert((width % 2) == 0);
     assert((height % 2) == 0);
     assert((phase == 0) || (phase == 1));
+
+    uint8_t rule[16];
+
+    fread(rule, 16*sizeof(uint8_t), 1, stdin);
 
     uint8_t *cells = (uint8_t *)malloc(width*height*sizeof(uint8_t));
 

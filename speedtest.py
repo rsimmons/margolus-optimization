@@ -57,130 +57,7 @@ def parse_dmishin_url(url):
 def format_dmishin_url(state):
     pass
 
-def evolve_py_simple_int(state, iters):
-    width = state['width']
-    height = state['height']
-    phase = state['phase']
-    assert (width % 2) == 0
-    assert (height % 2) == 0
-    assert phase in (0, 1)
-    rule = SINGLE_ROT_RULE_SEQ
-
-    icells = [int(x) for x in state['cells']]
-    assert len(icells) == width*height
-
-    for i in range(iters):
-        x0 = y0 = phase
-        for y in range(y0, height, 2):
-            dy = width if ((y + 1) < height) else (width*(1 - height))
-            a = y*width + x0
-            for x in range(x0, width, 2):
-                dx = 1 if ((x + 1) < width) else (1 - width)
-                b = a + dx
-                c = a + dy
-                d = b + dy
-
-                inp = icells[a] | (icells[b] << 1) | (icells[c] << 2) | (icells[d] << 3)
-                out = rule[inp]
-
-                if out != inp:
-                    icells[a] = out & 1
-                    icells[b] = (out >> 1) & 1
-                    icells[c] = (out >> 2) & 1
-                    icells[d] = (out >> 3) & 1
-
-                a += 2
-
-        phase = 1 - phase
-        if ((i+1) % 1000) == 1:
-            print i
-
-    return {
-        'width': width,
-        'height': height,
-        'phase': phase,
-        'cells': [bool(x) for x in icells],
-    }
-
-def evolve_c_simple_uint8(state, iters):
-    packed_pieces = []
-    packed_pieces.append(struct.pack('=IIII', state['width'], state['height'], state['phase'], iters))
-
-    for c in state['cells']:
-        packed_pieces.append(struct.pack('=B', int(c)))
-
-    subproc_input = ''.join(packed_pieces)
-
-    pobj = subprocess.Popen(['./evolve_simple_uint8'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (subproc_output, subproc_err) = pobj.communicate(subproc_input)
-    assert pobj.returncode == 0
-    # print 'debug output:', subproc_err
-
-    assert len(subproc_output) == state['width']*state['height']
-
-    return {
-        'width': state['width'],
-        'height': state['height'],
-        'phase': (1 - state['phase']) if iters & 1 else state['phase'],
-        'cells': [bool(ord(c)) for c in subproc_output],
-    }
-
-def evolve_block_64_cgen(exename, state, iters):
-    # pack up width, height, phase, data
-    assert (state['width'] % 8) == 0
-    assert (state['height'] % 8) == 0
-    width_blocks = state['width'] / 8
-    height_blocks = state['height'] / 8
-
-    packed_pieces = []
-    packed_pieces.append(struct.pack('=IIII', width_blocks, height_blocks, state['phase'], iters))
-
-    for by in range(height_blocks):
-        for bx in range(width_blocks):
-            qw = 0
-            bit_idx = 0
-            for suby in range(8):
-                for subx in range(8):
-                    cell_idx = state['width']*(8*by + suby) + (8*bx + subx)
-                    qw |= int(state['cells'][cell_idx]) << bit_idx
-                    bit_idx += 1
-
-            packed_pieces.append(struct.pack('=Q', qw))
-
-    subproc_input = ''.join(packed_pieces)
-
-    pobj = subprocess.Popen([exename], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (subproc_output, subproc_err) = pobj.communicate(subproc_input)
-    assert pobj.returncode == 0
-    # print 'debug output:', subproc_err
-
-    assert len(subproc_output) == 8*width_blocks*height_blocks
-
-    end_state = {}
-    end_state['width'] = state['width']
-    end_state['height'] = state['height']
-    end_state['phase'] = (1 - state['phase']) if iters & 1 else state['phase']
-    end_state['cells'] = (end_state['width']*end_state['height'])*[False]
-
-    qwi = 0
-    for by in range(height_blocks):
-        for bx in range(width_blocks):
-            (qw,) = struct.unpack('=Q', subproc_output[8*qwi:][:8])
-            bit_idx = 0
-            for suby in range(8):
-                for subx in range(8):
-                    cell_idx = end_state['width']*(8*by + suby) + (8*bx + subx)
-                    end_state['cells'][cell_idx] = bool(qw & (1 << bit_idx))
-                    bit_idx += 1            
-            qwi += 1
-
-    return end_state
-
-def evolve_block_64_cgen_array_rule(state, iters):
-    return evolve_block_64_cgen('./evolve_block_64_cgen_array_rule', state, iters)
-
-def evolve_block_64_cgen_packed_rule(state, iters):
-    return evolve_block_64_cgen('./evolve_block_64_cgen_packed_rule', state, iters)
+import v1, v2, v3, v4
 
 if __name__ == '__main__':
     test_start_url = 'http://dmishin.github.io/js-revca/index.html?rule=0,2,8,3,1,5,6,7,4,9,10,11,12,13,14,15&rle_x0=24&rle_y0=20&rle=bo4b3obobo$2b6o3b2o$8ob3o$4bobo5bo$3bob3o$bo2bobo4bo$ob5ob5o$4o2bob3obo$4b2ob2obobo$3ob2o2bo3bo$bob2obo3b3o$2o3bo2bobobo$b2o2b2ob2o2bo$3o2bob2obobo$bob3obobo2bo&step=1&frame_delay=10&size=64x64&cell_size=8,1&phase=0'
@@ -191,11 +68,17 @@ if __name__ == '__main__':
     test_end_state = parse_dmishin_url(test_end_url)
 
     # print format_state(test_start_state)
+    evolve_modules = [
+        v1,
+        v2,
+        v3,
+        # v4,
+    ]
 
-    for ef in (evolve_c_simple_uint8, evolve_block_64_cgen_packed_rule, evolve_block_64_cgen_array_rule):
+    for mod in evolve_modules:
         t0 = time.time()
-        end_state = ef(test_start_state, test_iters)
+        end_state = mod.evolve(test_start_state, SINGLE_ROT_RULE_SEQ, test_iters)
         dt = time.time() - t0
         # print format_state(end_state)
         assert states_equal(test_end_state, end_state)
-        print '%s: %d iters/s' % (ef.__name__, int(test_iters/dt))
+        print '%9d iters/s - %s %s' % (int(test_iters/dt), mod.__name__, getattr(mod, 'description', None) or '')
