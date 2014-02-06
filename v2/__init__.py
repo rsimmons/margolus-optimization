@@ -16,7 +16,7 @@ def evolve(state, rule, iters):
 
     subproc_input = ''.join(packed_pieces)
 
-    pobj = subprocess.Popen([os.path.join(os.path.dirname(__file__), 'evolve_simple_uint8')], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    pobj = subprocess.Popen([os.path.join(os.path.dirname(__file__), 'evolve_bin')], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (subproc_output, subproc_err) = pobj.communicate(subproc_input)
     assert pobj.returncode == 0
     # print 'debug output:', subproc_err
