@@ -57,7 +57,7 @@ def parse_dmishin_url(url):
 def format_dmishin_url(state):
     pass
 
-import v1, v2, v3, v4, v5, v6
+import v1, v2, v3, v4, v5, v6, v7
 
 if __name__ == '__main__':
     test_start_url = 'http://dmishin.github.io/js-revca/index.html?rule=0,2,8,3,1,5,6,7,4,9,10,11,12,13,14,15&rle_x0=24&rle_y0=20&rle=bo4b3obobo$2b6o3b2o$8ob3o$4bobo5bo$3bob3o$bo2bobo4bo$ob5ob5o$4o2bob3obo$4b2ob2obobo$3ob2o2bo3bo$bob2obo3b3o$2o3bo2bobobo$b2o2b2ob2o2bo$3o2bob2obobo$bob3obobo2bo&step=1&frame_delay=10&size=64x64&cell_size=8,1&phase=0'
@@ -75,6 +75,7 @@ if __name__ == '__main__':
         # v4,
         v5,
         v6,
+        v7,
     ]
 
     for mod in evolve_modules:
