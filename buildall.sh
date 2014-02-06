@@ -5,3 +5,4 @@
 (cd v5 ; ./build.sh)
 (cd v6 ; ./build.sh)
 (cd v7 ; ./build.sh)
+(cd v8 ; ./build.sh)
