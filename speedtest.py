@@ -1,62 +1,9 @@
 import time
-import re
-import struct
-import urlparse
-import subprocess
+
+import state
 
 SINGLE_ROT_RULE_SEQ = (0, 2, 8, 3, 1, 5, 6, 7, 4, 9, 10, 11, 12, 13, 14, 15)
 STRING_THING_RULE_SEQ = (0, 1, 2, 12, 4, 10, 9, 7, 8, 6, 5, 11, 3, 13, 14, 15)
-
-def states_equal(a, b):
-    return a['width'] == b['width'] and a['height'] == b['height'] and a['phase'] == b['phase'] and a['cells'] == b['cells']
-
-def format_state(state):
-    idx = 0
-    cs = []
-    for y in range(state['height']):
-        for x in range(state['width']):
-            cs.append('X' if state['cells'][idx] else '.')
-            idx += 1
-        cs.append('\n')
-    return ''.join(cs)
-
-RLE_RE = re.compile(r'([0-9]+)?(b|o|\$)')
-def parse_dmishin_url(url):
-    result = {}
-    qargs = urlparse.parse_qs(urlparse.urlparse(url).query)
-    result['width'], result['height'] = [int(x) for x in qargs['size'][0].split('x')]
-    result['phase'] = int(qargs['phase'][0])
-
-    rle_x0 = int(qargs['rle_x0'][0])
-    rle_y0 = int(qargs['rle_y0'][0])
-
-    rle = qargs['rle'][0]
-
-    pattern = (result['width']*result['height'])*[False]
-
-    x = rle_x0
-    y = rle_y0
-    for match in RLE_RE.finditer(rle):
-        count = int(match.group(1) or 1)
-        tag = match.group(2)
-        if tag == 'b':
-            x += count
-        elif tag == 'o':
-            for i in range(count):
-                pattern[x + y*result['width']] = True
-                x += 1
-        elif tag == '$':
-            x = rle_x0
-            y += count
-        else:
-            assert False
-
-    result['cells'] = pattern
-
-    return result
-
-def format_dmishin_url(state):
-    pass
 
 import v1, v2, v3, v4, v5, v6, v7, v8, v9, v10
 
@@ -72,8 +19,8 @@ if __name__ == '__main__':
     test_iters = 45056
     rule = STRING_THING_RULE_SEQ
 
-    test_start_state = parse_dmishin_url(test_start_url)
-    test_end_state = parse_dmishin_url(test_end_url)
+    test_start_state = state.parse_dmishin_url(test_start_url)
+    test_end_state = state.parse_dmishin_url(test_end_url)
 
     # print format_state(test_start_state)
     evolve_modules = [
@@ -94,5 +41,5 @@ if __name__ == '__main__':
         end_state = mod.evolve(test_start_state, rule, test_iters)
         dt = time.time() - t0
         # print format_state(end_state)
-        assert states_equal(test_end_state, end_state)
+        assert state.states_equal(test_end_state, end_state)
         print '%9d mega-cell-iters/s - %s %s' % (int(test_start_state['width']*test_start_state['height']*test_iters/dt/1e6), mod.__name__, getattr(mod, 'description', None) or '')
