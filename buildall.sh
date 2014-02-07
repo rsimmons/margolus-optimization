@@ -7,3 +7,4 @@
 (cd v7 ; ./build.sh)
 (cd v8 ; ./build.sh)
 (cd v9 ; ./build.sh)
+(cd v10 ; ./build.sh)

@@ -78,6 +78,7 @@ if __name__ == '__main__':
         v7,
         v8,
         v9,
+        v10,
     ]
 
     for mod in evolve_modules:
